@@ -1,1 +1,109 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{microtype}
 
+\geometry{left=25mm,right=25mm,top=25mm,bottom=25mm}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=blue,
+}
+
+\title{\textbf{Optimal Integrated Control of Suspension Damping and Braking for Minimum Braking Distance}}
+\author{Ivan Valiant Susanto \\ 
+\small Master's Programme in Vehicle Engineering \\ 
+\small KTH Royal Institute of Technology, Stockholm, Sweden}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Traditional vehicle braking and suspension systems are typically designed and controlled in isolation. However, the maximum longitudinal braking force a tire can transmit is strictly bounded by the dynamic normal load ($F_x \le \mu F_z$). During transient braking maneuvers (brake dive), normal loads fluctuate significantly. This project investigates the theoretical and simulation-based potential of synchronously and continuously co-optimizing semi-active/active suspension damping and braking forces to actively manage transient load transfer and minimize braking distance. The work establishes a foundational study using an analytical 2-DOF half-car model (sprung mass heave and pitch) in MATLAB/Simulink, scaling through a hierarchical tire model progression (Linear, Brush, and Magic Formula 6.2 via \texttt{mfeval}), and culminating in high-fidelity multi-body validation using CarSim.
+\end{abstract}
+
+\section{Introduction and Background}
+During emergency or performance braking, vehicle pitch dynamics—commonly known as ``brake dive''—cause a forward shift in axle load distribution. While static load transfer is governed by vehicle geometry and center of gravity height, the *transient* peak normal load can be actively influenced by controlling suspension damping forces. 
+
+Standard anti-dive suspension geometries or decoupled control systems often compromise ride comfort or peak deceleration response because they cannot adaptively sculpt transient normal loads. By treating damping and braking as a unified mechatronic control problem, this thesis explores how optimal control algorithms can exploit tire friction limits more effectively to shorten braking distances.
+
+\section{Research Objectives and Scope}
+The primary objective of this thesis is to quantify the performance ceiling of integrated suspension and brake control during straight-line braking. The project scope is defined by the following key objectives:
+\begin{itemize}
+    \item \textbf{Mathematical Modeling:} Formulate a linear 2-DOF half-car state-space model capturing sprung mass vertical bounce (heave, $z$) and pitch ($\theta$).
+    \item \textbf{Tiered Tire Modeling:} Implement progressive tire dynamics, starting with linear approximations, moving to semi-analytical brush models, and finalizing with Pacejka Magic Formula 6.2 via the \texttt{mfeval} toolbox.
+    \item \textbf{Control Synthesis \& Benchmarking:} Design and evaluate optimal controllers (e.g., LQR, MPC) alongside classical rule-based strategies (e.g., Groundhook damping) and robust frameworks ($H_\infty$).
+    \item \textbf{Multi-Body Co-Simulation:} Validate custom MATLAB/Simulink control architectures against high-fidelity vehicle plants using CarSim (leveraging host company simulation licenses).
+\end{itemize}
+
+\section{Methodology and Simulation Framework}
+\subsection{2-DOF Half-Car State-Space Formulation}
+To facilitate optimal control design and provide a transparent preliminary demo, the initial phase neglects unsprung mass hop to isolate low-frequency body dynamics (1--3 Hz). The equations of motion for sprung mass heave ($m\ddot{z}$) and pitch ($I_y\ddot{\theta}$) are expressed in state-space form:
+\begin{equation}
+    \dot{x}(t) = A x(t) + B u(t) + W w(t)
+\end{equation}
+\begin{equation}
+    y(t) = C x(t) + D u(t)
+\end{equation}
+where the state vector $x = \begin{bmatrix} z & \theta & \dot{z} & \dot{\theta} \end{bmatrix}^T$ contains body displacements and velocities, control inputs $u = \begin{bmatrix} F_{df} & F_{dr} \end{bmatrix}^T$ represent front and rear damping forces, and disturbance $w$ accounts for longitudinal deceleration pitch moments.
+
+\subsection{Tire Dynamics Progression}
+To accurately capture the interaction between normal load transfer and force saturation, the simulation framework utilizes a structured three-tier tire model hierarchy:
+\begin{enumerate}
+    \item \textbf{Linear Tire Model:} Used for initial controller tuning and analytical validation.
+    \item \textbf{Brush Tire Model:} Introduces adhesion and sliding physics to study nonlinear force saturation.
+    \item \textbf{Pacejka Magic Formula 6.2 (\texttt{mfeval}):} Deploys industry-standard empirical equations via MATLAB's \texttt{mfeval} toolbox to evaluate performance under realistic tire characteristics and combined slip limits.
+\end{enumerate}
+
+\subsection{Toolchain and Co-Simulation}
+\begin{itemize}
+    \item \textbf{MATLAB/Simulink:} Primary environment for analytical derivation, matrix parameterization, tire evaluation via \texttt{mfeval}, and optimal controller synthesis.
+    \item \textbf{CarSim:} Utilized for advanced multi-body vehicle plant validation, cross-checking custom Simulink algorithms against industry-standard vehicle dynamics software using corporate license infrastructure.
+\end{itemize}
+
+\section{Scope Limitations and Future Development}
+While this study isolates the co-optimization of suspension damping and global braking force to maximize normal load ($F_z$) during transient brake dive, real-world implementation must interface with tire slip limits. 
+
+\begin{itemize}
+    \item \textbf{Exclusion of ABS Optimization:} High-frequency wheel slip control (ABS operating at $15\text{--}50+\text{ Hz}$) is deliberately decoupled from low-frequency suspension pitch dynamics ($1\text{--}3\text{ Hz}$) to maintain a focused thesis scope.
+    \item \textbf{Future Extension:} Future iterations of this framework could integrate a slip-based braking controller layer to simultaneously optimize normal load transfer and tire slip ratio, achieving a fully integrated chassis control architecture.
+\end{itemize}
+
+\section{Proposed Timeline and Milestones}
+\begin{table}[h]
+\centering
+\caption{Project Milestones and Estimated Timeline}
+\begin{tabular}{lll}
+\toprule
+\textbf{Phase} & \textbf{Task Description} & \textbf{Timeframe} \\
+\midrule
+Phase 1 & Literature review, 2-DOF derivation, and linear tire setup in MATLAB & Weeks 1--3 \\
+Phase 2 & Implementation of Brush and Magic Formula (\texttt{mfeval}) tire models & Weeks 4--6 \\
+Phase 3 & Advanced control design (LQR/MPC/Groundhook) and co-optimization tuning & Weeks 7--10 \\
+Phase 4 & CarSim multi-body integration, actuator bandwidth limits, and uneven roads & Weeks 11--13 \\
+Phase 5 & Final analysis, report writing, and presentation preparation & Weeks 14--16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Expected Deliverables}
+\begin{enumerate}
+    \item A modular, well-documented MATLAB/Simulink and CarSim co-simulation framework.
+    \item A comprehensive thesis report analyzing trade-offs between braking distance minimization, ride quality, and actuator constraints across progressive tire models.
+    \item Quantitative performance metrics providing actionable insights for advanced suspension development.
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
