@@ -1,5 +1,5 @@
 % Extract time vector and data
-time = ScopeData.time;
+time = pitchandbounce.time;
 signal_names = {'Heave (z)', 'Heave Velocity (z_dot)', 'Pitch (theta)', 'Pitch Velocity (theta_dot)'};
 
 disp('=====================================================================');
@@ -7,8 +7,8 @@ disp('      COMPREHENSIVE SEMI-ACTIVE VS. PASSIVE PERFORMANCE SUMMARY      ');
 disp('=====================================================================');
 
 for i = 1:4
-    passive_signal = ScopeData.signals(i).values(:, 1);
-    semi_signal    = ScopeData.signals(i).values(:, 2);
+    passive_signal = pitchandbounce.signals(i).values(:, 1);
+    semi_signal    = pitchandbounce.signals(i).values(:, 2);
     
     % 1. Peak Metrics
     max_passive = max(abs(passive_signal));

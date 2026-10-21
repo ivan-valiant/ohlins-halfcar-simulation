@@ -3,6 +3,7 @@ clear; clc;
 
 %% 1. Physical Parameters
 m   = 1600;        % Sprung mass [kg]
+g   = 9.81;        % Gravity acceleration (m/s^2)
 Jy  = 2500;        % Pitch moment of inertia [kg*m^2]
 kf  = 35e3;        % Front axle stiffness [N/m]
 kr  = 35e3;        % Rear axle stiffness [N/m]
@@ -13,6 +14,7 @@ c_max = 4000;      % max active damping [N*s/m]
 a   = 1.2;         % CG to front axle [m]
 b   = 1.6;         % CG to rear axle [m]
 h   = 0.5;         % CG height above pitch axis [m]
+mu  = 0.4;         % road friction coefficient
 
 %% 2. PASSIVE MODEL SETUP
 % States: x = [z; dz; theta; dtheta]
