@@ -1,6 +1,6 @@
 # Semi-Active LQR Suspension & Braking Co-Simulation (2-DOF Half-Car Model)
 
-This repository contains the MATLAB/Simulink modeling framework and simulation scripts for evaluating a semi-active LQR-controlled suspension system during transient braking maneuvers. Developed as part of a Master's research project in collaboration with Öhlins.
+This repository contains the MATLAB/Simulink modeling framework and simulation scripts for evaluating a semi-active LQR-controlled suspension system during transient braking maneuvers. Developed as part of a Master's thesis research project focusing on advanced semi-active suspension control utilizing Öhlins damper constraints.
 
 ---
 
