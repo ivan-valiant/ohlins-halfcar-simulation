@@ -7,6 +7,9 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{microtype}
+\usepackage{float}
+\usepackage[section]{placeins}
+
 
 \geometry{left=25mm,right=25mm,top=25mm,bottom=25mm}
 
@@ -19,7 +22,7 @@
 }
 
 \title{\textbf{Optimal Integrated Control of Suspension Damping and Braking for Minimum Braking Distance}}
-\author{Ivan Valiant \\ 
+\author{Ivan Valiant Susanto \\ 
 \small Master's Programme in Vehicle Engineering \\ 
 \small KTH Royal Institute of Technology, Stockholm, Sweden}
 \date{\today}
@@ -81,61 +84,61 @@ While this study isolates the co-optimization of suspension damping and global b
     \item \textbf{Exclusion of ABS Optimization:} High-frequency wheel slip control (ABS operating at $15\text{--}50+\text{ Hz}$) is deliberately decoupled from low-frequency suspension pitch dynamics ($1\text{--}3\text{ Hz}$) to maintain a focused thesis scope.
     \item \textbf{Future Extension:} Future iterations of this framework could integrate a slip-based braking controller layer to simultaneously optimize normal load transfer and tire slip ratio, achieving a fully integrated chassis control architecture.
 \end{itemize}
-\section{Preliminary Simulation Results and Actuator Validation}
-To validate the 2-DOF half-car state-space framework under realistic hardware limitations, an initial simulation was conducted comparing a passive baseline damper to the proposed semi-active LQR controller. The overall Simulink simulation architecture and the specialized damper realization subsystem are illustrated in Figures~\ref{fig:main_sim} and \ref{fig:damper_model}.
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.85\textwidth]{main_sim.png}
-    \caption{Overview of the 2-DOF half-car Simulink simulation framework integrating state-space plant dynamics and control logic.}
-    \label{fig:main_sim}
-\end{figure}
+\section{Preliminary Simulation Results and Tire-Braking Co-Simulation}
+To validate the 2-DOF half-car state-space framework under realistic hardware limitations, an initial simulation was conducted comparing a passive baseline damper to the proposed semi-active LQR controller. An overview of the closed-loop Simulink architecture is detailed in Appendix~A (Figure~\ref{fig:main_sim}).
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.85\textwidth]{damper_model.png}
-    \caption{Clipped Optimal Damping Realization subsystem incorporating damping saturation ($c_{\min}, c_{\max}$), passivity constraints ($F_d \cdot \dot{x}_{\text{rel}} \le 0$), and valve slew-rate bandwidth limits.}
-    \label{fig:damper_model}
-\end{figure}
-
-The semi-active implementation integrates three core Öhlins solenoid valve constraints:
+The semi-active implementation integrates three core Öhlins solenoid valve constraints (further illustrated in Appendix~A, Figure~\ref{fig:damper_model}):
 \begin{enumerate}
     \item \textbf{Damping Coefficient Saturation:} Bounded between $c_{\min} = 500\text{ N}\cdot\text{s/m}$ and $c_{\max} = 4000\text{ N}\cdot\text{s/m}$.
     \item \textbf{Passivity Constraint:} Enforced via velocity-guard logic ensuring the damper remains purely dissipative ($F_d \cdot \dot{x}_{\text{rel}} \le 0$), preventing any external energy injection.
     \item \textbf{Valve Bandwidth Limits:} Modeled using a slew-rate limiter to simulate solenoid response lag during transient events.
 \end{enumerate}
 
-As detailed in Table~\ref{tab:prelim_results} and visualized in the transient response scope output of Figure~\ref{fig:result1}, the semi-active controller successfully suppresses transient body motion during a braking maneuver. Crucially, the real-time modulation of damping forces actively cuts down the oscillation peaks during the initial transient phase and promotes a visibly faster settling time compared to the under-damped passive baseline. 
+To evaluate the cross-coupling between suspension pitch dynamics and longitudinal braking, a \textbf{Tier 2 Non-Linear Friction Saturation model} ($F_{x,\max} = \mu F_z$) was incorporated via custom Simulink subsystems (depicted in Appendix~A, Figures~\ref{fig:tire_passive} and \ref{fig:tire_semi}). 
 
-Furthermore, both models converge to the exact same static equilibrium height, confirming that the transient performance gains are achieved entirely through optimal, dissipative energy management rather than altered static ride height or body jacking.
+Under low-friction conditions ($\mu = 0.4$), the limitations of transient load transfer become critical. As detailed in Table~\ref{tab:prelim_results} and visualized in Figure~\ref{fig:result1}, the semi-active LQR controller successfully suppresses transient body motion during a braking maneuver. By aggressively cutting down oscillation peaks during the initial transient phase, the controller stabilizes the vertical normal loads ($F_z$), preventing premature tire force clipping at the saturation boundary. 
 
-\begin{figure}[htbp]
+Consequently, as shown in Figure~\ref{fig:acc_result}, the semi-active configuration achieves higher sustained deceleration ($a_x$) compared to the under-damped passive baseline. While this higher braking force results in a marginally deeper steady-state nosedive due to increased load transfer ($\Delta F_z = \frac{m h a_x}{L}$), the transient overshoot and settling behavior are vastly superior.
+
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{result1.png}
-    \caption{Simulation scope comparison (Passive vs. Semi-Active LQR) highlighting the reduction in transient pitch and heave oscillations and accelerated settling behavior.}
+    \caption{Simulation scope comparison (Passive vs. Semi-Active LQR under $\mu = 0.4$) highlighting the reduction in transient pitch and heave oscillations.}
     \label{fig:result1}
 \end{figure}
 
-\begin{table}[h]
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{acc_result.png}
+    \caption{Longitudinal deceleration ($a_x$) comparison showing the semi-active controller sustaining higher braking performance by avoiding tire saturation.}
+    \label{fig:acc_result}
+\end{figure}
+
+\begin{table}[!h]
 \centering
-\caption{Quantitative Comparison of Transient Braking Performance (Passive vs. Semi-Active LQR)}
+\caption{Quantitative Comparison of Transient Braking Performance ($\mu = 0.4$, Passive vs. Semi-Active LQR)}
 \label{tab:prelim_results}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Kinematic Metric} & \textbf{Passive Baseline} & \textbf{Semi-Active LQR} & \textbf{Peak Reduction (\%)} \\
 \midrule
-Heave ($z$) [m] & 0.01577 & 0.00991 & 37.11\% \\
-Heave Velocity ($\dot{z}$) [m/s] & 0.04777 & 0.02014 & 57.85\% \\
-Pitch Angle ($\theta$) [rad] & 0.05986 & 0.04684 & 21.75\% \\
-Pitch Velocity ($\dot{\theta}$) [rad/s] & 0.21387 & 0.14545 & 31.99\% \\
+Heave ($z$) [m] & 0.00859 & 0.00569 & 33.77\% \\
+Heave Velocity ($\dot{z}$) [m/s] & 0.02645 & 0.01152 & 56.44\% \\
+Pitch Angle ($\theta$) [rad] & 0.03263 & 0.02685 & 17.72\% \\
+Pitch Velocity ($\dot{\theta}$) [rad/s] & 0.11981 & 0.08293 & 30.78\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+
 \section{Proposed Timeline and Milestones}
-\begin{table}[h]
+The research and development schedule is structured across five progressive phases, moving from analytical modeling to physical co-simulation:
+
+\begin{table}[H]
 \centering
 \caption{Project Milestones and Estimated Timeline}
+\label{tab:timeline}
 \begin{tabular}{lll}
 \toprule
 \textbf{Phase} & \textbf{Task Description} & \textbf{Timeframe} \\
@@ -150,6 +153,7 @@ Phase 5 & Final analysis, report writing, and presentation preparation & Weeks 1
 \end{table}
 
 \section{Expected Deliverables}
+Upon completion of this research project, the primary deliverables will include:
 \begin{enumerate}
     \item A modular, well-documented MATLAB/Simulink and CarSim co-simulation framework.
     \item A comprehensive thesis report analyzing trade-offs between braking distance minimization, ride quality, and actuator constraints across progressive tire models.
@@ -159,7 +163,43 @@ Phase 5 & Final analysis, report writing, and presentation preparation & Weeks 1
 \section*{Transparency and AI Tool Disclosure}
 In accordance with modern academic and professional research standards, generative AI tools (such as large language models) were consulted during the preparation of this proposal for structural outlining, editorial refinement, and syntax assistance in script development. All technical modeling choices, mathematical formulations, control strategy selections, and engineering judgments remain the sole responsibility of the author.
 
-\bibliographystyle{plain}
-\bibliography{references}
+%\bibliographystyle{plain}
+%\bibliography{references}
 
+\clearpage
+\appendix
+\section*{Appendix: Simulink Model Implementation Schematics}
+\addcontentsline{toc}{section}{Appendix: Simulink Model Schematics}
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{A.\arabic{figure}}
+
+This appendix provides the detailed block-level schematics of the Simulink simulation framework and custom subsystems developed for this study.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{main_sim.png}
+    \caption{Overview of the 2-DOF half-car Simulink simulation framework integrating state-space plant dynamics and closed-loop tire friction saturation logic.}
+    \label{fig:main_sim}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{damper_model.png}
+    \caption{Clipped Optimal Damping Realization subsystem incorporating damping saturation, passivity constraints, and valve slew-rate bandwidth limits.}
+    \label{fig:damper_model}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{tiremodelpassive.png}
+    \caption{Subsystem architecture for dynamic normal load and friction limit calculation in the passive baseline configuration.}
+    \label{fig:tire_passive}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{tiremodelsemi.png}
+    \caption{Subsystem architecture incorporating semi-active damper force feedback into dynamic normal load and friction limit calculations.}
+    \label{fig:tire_semi}
+\end{figure}
 \end{document}
